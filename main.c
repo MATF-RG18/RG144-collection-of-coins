@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #define TIMER_ID 0
-#define TIMER_INTERVAL 20
+#define TIMER_INTERVAL 10
 static int animation_ongoing;
 static float rotation_speed;
 
@@ -19,8 +19,9 @@ static void on_timer_2(int value_2);
 static void on_timer_3(int value_3);
 static void create_hole(void);
 static void check_hole(float xl,float xd,float yg,float yd);
-static void create_triangle(void);
-static void leva_strana(void);
+static void up_speed(void);
+static void left_wall(void);
+static void rigth_wall(void);
 
 int width_window = 700;
 int height_window = 500;
@@ -171,7 +172,7 @@ static void on_display(void){
   glPushMatrix();  
     glRotatef(90,1,0,0);
     create_track();
-    create_triangle();
+    up_speed();
     create_hole();
     
     glEnable(GL_LIGHTING);
@@ -179,12 +180,12 @@ static void on_display(void){
     create_sphera();
     glDisable(GL_LIGHT0);
     glDisable(GL_LIGHTING);
+    
+    left_wall();
+    rigth_wall();
   glPopMatrix();
-  
-  glPushMatrix();
-    //leva_strana();
-  glPopMatrix();
-  
+ 
+
   glutSwapBuffers();
 }
 
@@ -212,7 +213,7 @@ static void create_sphera(void){
 
 // iscrtavanje staze
 static void create_track(void){
-  for(int i=1;i<1500; i++) {
+  for(int i=1;i<1020; i++) {
     switch (i%2) {
       case 0:
         glColor3d(0.2,0.2,0.2);
@@ -257,7 +258,7 @@ static void create_hole(void) {
   }
 }
 
-static void create_triangle(void){
+static void up_speed(void){
   int i;
   float x;
   for(i=1; i<1000; i=i+10) {
@@ -301,21 +302,42 @@ void check_hole(float xl,float xd,float yg,float yd){
     }
 }
 
-static void leva_strana(void){
-  for(int i=1;i<5; i++) {
+static void rigth_wall(void){
+  for(int i=1;i<1020; i++) {
     switch (i%2) {
       case 0:
-        glColor3d(0,0,1);
+        glColor3d(1,0,0);
         break;
       case 1:
-        glColor3d(0,1,0);
+        glColor3d(0.2,0.2,0.2);
         break;
     }
+    
     glBegin(GL_POLYGON);
-      glVertex3d(0.7,-1+(0.2*(i-1)),0);
-      glVertex3d(0.7,-1+(0.2*i),0);
+      glVertex3d(-0.7,-1+(0.2*(i-1)),-1.4);
+      glVertex3d(-0.7,-1+(0.2*i),-1.4);
       glVertex3d(-0.7,-1+(0.2*i),0);
       glVertex3d(-0.7,-1+(0.2*(i-1)),0);
+    glEnd();
+  }
+}
+
+static void left_wall(void){
+  for(int i=1;i<1020; i++) {
+    switch (i%2) {
+      case 0:
+        glColor3d(1,0,0);
+        break;
+      case 1:
+        glColor3d(0.2,0.2,0.2);
+        break;
+    }
+    
+    glBegin(GL_POLYGON);
+      glVertex3d(0.7,-1+(0.2*(i-1)),-1.4);
+      glVertex3d(0.7,-1+(0.2*i),-1.4);
+      glVertex3d(0.7,-1+(0.2*i),0);
+      glVertex3d(0.7,-1+(0.2*(i-1)),0);
     glEnd();
   }
 }
