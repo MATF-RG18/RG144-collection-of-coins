@@ -15,8 +15,6 @@ static void create_track(void);
 static void create_sphera(void);
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_timer_1(int value_1);
-static void on_timer_2(int value_2);
-static void on_timer_3(int value_3);
 static void create_hole(void);
 static void check_hole(float xl,float xd,float yg,float yd);
 static void up_speed(void);
@@ -25,10 +23,12 @@ static void rigth_wall(void);
 
 int width_window = 700;
 int height_window = 500;
-float y_1 = -0.7;
+float z_1 = 0.7;
 float x_1 = 0.0;
-float z_camera = -1.6;
 int niz_random[1000];
+int i, lm = 0, rm = 0;
+float z_ball = 0.5;
+float y_ball = 0;
 
 int main(int argc, char **argv) {
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   animation_ongoing = 0;
   rotation_speed = 0;
 
-  for(int i=0; i<1000; i++) {
+  for( i=0; i<1000; i++) {
     niz_random[i] = rand() % 10;
   }
     
@@ -61,7 +61,6 @@ static void initialize(void){
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(0,1,-1.75,0,0,0,0,0,1);
 }
 
 static void on_keyboard(unsigned char key, int x, int y){
@@ -76,14 +75,12 @@ static void on_keyboard(unsigned char key, int x, int y){
       }
       break;
     case 'a':
-      if(animation_ongoing) {
-        glutTimerFunc(TIMER_INTERVAL, on_timer_2, TIMER_ID);
-      }
+      lm = 1;
+      rm = 0;
       break;
     case 'd':
-      if(animation_ongoing) {
-        glutTimerFunc(TIMER_INTERVAL, on_timer_3, TIMER_ID);
-      }
+      rm = 1;
+      lm = 0;
       break;
     case 's':
       animation_ongoing = 0;
@@ -94,48 +91,43 @@ static void on_timer_1(int value_1){
   if(value_1 != TIMER_ID)
     return;
 
-  y_1 += 0.02;
-  z_camera += 0.02;
-
   rotation_speed += 8;
-
+ 
+  // upadanje u rupu
+  if(y_ball != 0){
+    while(y_ball < -1){
+      y_ball -= 0.1;
+      exit(0);
+    }
+  }
+  
+  else {
+    
+    z_1 -= 0.02;
+     
+    if(lm == 1){  
+      x_1 += 0.01;
+      if(x_1 > 0.8) {
+	  animation_ongoing = 0;
+	  sleep(3);
+	  exit(0);
+      }
+    }
+    
+    if(rm == 1){
+      x_1 -= 0.01;
+      if(x_1 < -0.8) {
+	  animation_ongoing = 0;
+	  sleep(3);
+	  exit(0);
+      }
+    }  
+  }
+  
   glutPostRedisplay();
 
   if(animation_ongoing) {
     glutTimerFunc(TIMER_INTERVAL, on_timer_1, TIMER_ID);
-  }
-}
-
-// timer_2 za skretanje u levo
-static void on_timer_2(int value_2){
-  if(value_2 != TIMER_ID)
-    return;
-  
-  if(x_1 > 0.8) {
-      animation_ongoing = 0;
-      sleep(3);
-      exit(0);
-  }
-  x_1 += 0.02;
-
-  if(animation_ongoing) {
-    glutTimerFunc(TIMER_INTERVAL, on_timer_2, TIMER_ID);
-  }
-}
-
-// // timer_3 za skretanje u desno
-static void on_timer_3(int value_3){
-  if(value_3 != TIMER_ID)
-    return;
-  if(x_1 < -0.8) {
-      animation_ongoing = 0;
-      sleep(3);
-      exit(0);
-  }
-  x_1 -= 0.02;
-
-  if(animation_ongoing) {
-    glutTimerFunc(TIMER_INTERVAL, on_timer_3, TIMER_ID);
   }
 }
 
@@ -145,10 +137,10 @@ static void on_display(void){
   // pomeranje kamere sa kretanjem sfere
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(0,1,z_camera,0,0,1.75+z_camera,0,0,1);
+  gluLookAt(0,1,-0.6,0,0,1.5,0,1,0);
   
   // postavljanje vrste svetala
-  GLfloat light_position[] = {-0.7,0,-1,0};
+  GLfloat light_position[] = {0,0.5,-1,0};
   GLfloat ambient_light[] = {0,0,0,1};
   GLfloat diffuse_light[] = {0.7,0.7,0.7,1};
   GLfloat specular_light[] = {0.9,0.9,0.9,1};
@@ -169,22 +161,20 @@ static void on_display(void){
   glMaterialfv(GL_FRONT,GL_SPECULAR,specular_coeffs);
   glMaterialf(GL_FRONT,GL_SHININESS,shininess);
   
-  glPushMatrix();  
-    glRotatef(90,1,0,0);
+  glPushMatrix(); 
+    glTranslated(0,0,z_1);
     create_track();
     up_speed();
     create_hole();
-    
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    create_sphera();
-    glDisable(GL_LIGHT0);
-    glDisable(GL_LIGHTING);
-    
     left_wall();
     rigth_wall();
   glPopMatrix();
- 
+       
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  create_sphera();
+  glDisable(GL_LIGHT0);
+  glDisable(GL_LIGHTING);
 
   glutSwapBuffers();
 }
@@ -204,7 +194,7 @@ static void on_reshape(int width, int height){
 // iscrtavanje sfere
 static void create_sphera(void){
   glPushMatrix();
-    glTranslated(x_1,y_1,0);
+    glTranslated(x_1,y_ball,z_ball);
     glRotatef(rotation_speed,1,0,0);
     glShadeModel(GL_FLAT);
     glutSolidSphere(0.115,15,15);
@@ -213,21 +203,52 @@ static void create_sphera(void){
 
 // iscrtavanje staze
 static void create_track(void){
-  for(int i=1;i<1020; i++) {
-    switch (i%2) {
-      case 0:
-        glColor3d(0.2,0.2,0.2);
-        break;
-      case 1:
-        glColor3d(1,0,0);
-        break;
+
+  for(i=1; i<1020; i++) {
+    if(i == 1018 || i == 1019) {
+      int j;
+      for(j=0; j<=6; j++) {
+	if(i==1018){
+	  if(j % 2 == 0){
+	    glColor3d(0,0,0);
+	  }
+	  else{
+	    glColor3d(1,1,1);
+	  }
+	}
+	else{
+	  if(j % 2 == 0){
+	    glColor3d(1,1,1);
+	  }
+	  else{
+	    glColor3d(0,0,0);
+	  }  
+	}	
+	glBegin(GL_POLYGON);
+	  glVertex3d(0.7-j*0.2,0,-1+(0.2*(i-1)));
+	  glVertex3d(0.7-j*0.2,0,-1+(0.2*i));
+	  glVertex3d(0.7-(0.2*(j+1)),0,-1+(0.2*i));
+	  glVertex3d(0.7-(0.2*(j+1)),0,-1+(0.2*(i-1)));
+	glEnd();
+      }
     }
-    glBegin(GL_POLYGON);
-      glVertex3d(0.7,-1+(0.2*(i-1)),0);
-      glVertex3d(0.7,-1+(0.2*i),0);
-      glVertex3d(-0.7,-1+(0.2*i),0);
-      glVertex3d(-0.7,-1+(0.2*(i-1)),0);
-    glEnd();
+    
+    else{
+      switch (i%2) {
+	case 0:
+	  glColor3d(0.2,0.2,0.2);
+	  break;
+	case 1:
+	  glColor3d(1,0,0);
+	  break;
+      }
+      glBegin(GL_POLYGON);
+	glVertex3d(0.7,0,-1+(0.2*(i-1)));
+	glVertex3d(0.7,0,-1+(0.2*i));
+	glVertex3d(-0.7,0,-1+(0.2*i));
+	glVertex3d(-0.7,0,-1+(0.2*(i-1)));
+      glEnd();
+    }
   }
 }
 
@@ -249,15 +270,16 @@ static void create_hole(void) {
     if(x>-0.7 && x<0.7 && (x-0.3)>-0.7 && (x-0.3)<0.7) {
      glColor3d(0,0,1);
      glBegin(GL_POLYGON);
-        glVertex3f(x,i*0.2+0.4,0);
-        glVertex3f(x,i*0.2,0);
-        glVertex3f(x-0.3,i*0.2,0);
-        glVertex3f(x-0.3,i*0.2+0.4,0);
+        glVertex3f(x,0,i*0.2+0.4);
+        glVertex3f(x,0,i*0.2);
+        glVertex3f(x-0.3,0,i*0.2);
+        glVertex3f(x-0.3,0,i*0.2+0.4);
      glEnd();   
     }
   }
 }
 
+// isrtavanje strelica za ubrzanje
 static void up_speed(void){
   int i;
   float x;
@@ -272,38 +294,38 @@ static void up_speed(void){
     if(x>-0.7 && x<0.7 && (x-0.3)>-0.7 && (x-0.3)<0.7) {
         glColor3d(0,1,0);
         glBegin(GL_POLYGON);
-            glVertex3f(x,i*0.2,0);
-            glVertex3f(x-0.3,i*0.2,0);
-            glVertex3f((x+x-0.3)/2,i*0.2+0.2,0);
+            glVertex3f(x,0,i*0.2);
+            glVertex3f(x-0.3,0,i*0.2);
+            glVertex3f((x+x-0.3)/2,0,i*0.2+0.2);
         glEnd();
         
         glColor3d(1,1,1);
         glBegin(GL_POLYGON);
-            glVertex3f(x,i*0.2-0.1,0);
-            glVertex3f(x-0.3,i*0.2-0.1,0);
-            glVertex3f((x+x-0.3)/2,i*0.2+0.2-0.1,0);
+            glVertex3f(x,0,i*0.2-0.1);
+            glVertex3f(x-0.3,0,i*0.2-0.1);
+            glVertex3f((x+x-0.3)/2,0,i*0.2+0.2-0.1);
         glEnd();
         
         glColor3d(0,1,0);
         glBegin(GL_POLYGON);
-            glVertex3f(x,i*0.2-0.2,0);
-            glVertex3f(x-0.3,i*0.2-0.2,0);
-            glVertex3f((x+x-0.3)/2,i*0.2+0.2-0.2,0);
+            glVertex3f(x,0,i*0.2-0.2);
+            glVertex3f(x-0.3,0,i*0.2-0.2);
+            glVertex3f((x+x-0.3)/2,0,i*0.2+0.2-0.2);
         glEnd();
     }
   }     
 }
 
-void check_hole(float xl,float xd,float yg,float yd){
-    if((x_1 <= xl) && (x_1 >= xd) && (y_1 <= yg) && (y_1 >= yd)) {
-        animation_ongoing = 0;
-        sleep(3);
-        exit(0);
+// provera upadanja u rupu
+void check_hole(float xl,float xd,float zg,float zd){
+     if((x_1 <= (xl-0.05)) && (x_1 >= (xd+0.05)) && (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1)) {
+       y_ball-=0.1; 
     }
 }
 
+// isrtavanje desnog zida
 static void rigth_wall(void){
-  for(int i=1;i<1020; i++) {
+  for( i=1;i<1020; i++) {
     switch (i%2) {
       case 0:
         glColor3d(1,0,0);
@@ -314,16 +336,17 @@ static void rigth_wall(void){
     }
     
     glBegin(GL_POLYGON);
-      glVertex3d(-0.7,-1+(0.2*(i-1)),-1.4);
-      glVertex3d(-0.7,-1+(0.2*i),-1.4);
-      glVertex3d(-0.7,-1+(0.2*i),0);
-      glVertex3d(-0.7,-1+(0.2*(i-1)),0);
+      glVertex3d(-0.7,1.4,-1+(0.2*(i-1)));
+      glVertex3d(-0.7,1.4,-1+(0.2*i));
+      glVertex3d(-0.7,0,-1+(0.2*i));
+      glVertex3d(-0.7,0,-1+(0.2*(i-1)));
     glEnd();
   }
 }
 
+// iscrtavanje levog zida
 static void left_wall(void){
-  for(int i=1;i<1020; i++) {
+  for( i=1;i<1020; i++) {
     switch (i%2) {
       case 0:
         glColor3d(1,0,0);
@@ -334,10 +357,10 @@ static void left_wall(void){
     }
     
     glBegin(GL_POLYGON);
-      glVertex3d(0.7,-1+(0.2*(i-1)),-1.4);
-      glVertex3d(0.7,-1+(0.2*i),-1.4);
-      glVertex3d(0.7,-1+(0.2*i),0);
-      glVertex3d(0.7,-1+(0.2*(i-1)),0);
+      glVertex3d(0.7,1.4,-1+(0.2*(i-1)));
+      glVertex3d(0.7,1.4,-1+(0.2*i));
+      glVertex3d(0.7,0,-1+(0.2*i));
+      glVertex3d(0.7,0,-1+(0.2*(i-1)));
     glEnd();
   }
 }
