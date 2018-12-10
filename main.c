@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdbool.h>
 
 #define TIMER_ID 0
 #define TIMER_INTERVAL 10
@@ -20,6 +22,8 @@ static void check_hole(float xl,float xd,float yg,float yd);
 static void up_speed(void);
 static void left_wall(void);
 static void rigth_wall(void);
+static void game_over_hole(void);
+static void specialKeys(int key, int x, int y);
 
 int width_window = 700;
 int height_window = 500;
@@ -29,6 +33,9 @@ int niz_random[1000];
 int i, lm = 0, rm = 0;
 float z_ball = 0.5;
 float y_ball = 0;
+bool in_hole = false;
+int jump = 0;
+float translate_x = 0.0;
 
 int main(int argc, char **argv) {
 
@@ -50,7 +57,8 @@ int main(int argc, char **argv) {
   glutDisplayFunc(on_display);
   glutReshapeFunc(on_reshape);
   glutKeyboardFunc(on_keyboard);
-
+  glutSpecialFunc(specialKeys);
+  
   glutMainLoop();
 
   return 0;
@@ -74,55 +82,82 @@ static void on_keyboard(unsigned char key, int x, int y){
         animation_ongoing = 1;
       }
       break;
-    case 'a':
-      lm = 1;
-      rm = 0;
-      break;
-    case 'd':
-      rm = 1;
-      lm = 0;
-      break;
     case 's':
       animation_ongoing = 0;
+      break;
+    case 32:
+        jump = 1;
+        break;
   }
 }
 
+// kretanje levo, desno
+static void specialKeys(int key, int x, int y){
+  switch (key) {
+    case GLUT_KEY_LEFT:
+      lm = 1;
+      rm = 0;
+      break;
+    case GLUT_KEY_RIGHT:
+      rm = 1;
+      lm = 0;
+      break;
+  }  
+}
+
 static void on_timer_1(int value_1){
-  if(value_1 != TIMER_ID)
+if(value_1 != TIMER_ID)
     return;
 
-  rotation_speed += 8;
- 
-  // upadanje u rupu
-  if(y_ball != 0){
-    while(y_ball < -1){
-      y_ball -= 0.1;
-      exit(0);
-    }
-  }
-  
-  else {
+    rotation_speed += 8;
     
     z_1 -= 0.02;
-     
-    if(lm == 1){  
+    
+    if(lm == 1){
+      translate_x += 0.01;
       x_1 += 0.01;
+      if(translate_x > 0.2) {
+          lm = 0;
+          translate_x = 0;
+      }
+      
       if(x_1 > 0.8) {
 	  animation_ongoing = 0;
-	  sleep(3);
+          sleep(3);
 	  exit(0);
       }
     }
     
     if(rm == 1){
+      translate_x += 0.01;
       x_1 -= 0.01;
+      if(translate_x > 0.2) {
+          rm = 0;
+          translate_x = 0;
+      }
+      
       if(x_1 < -0.8) {
 	  animation_ongoing = 0;
 	  sleep(3);
 	  exit(0);
       }
-    }  
-  }
+    }
+    
+    // skakanje
+    if(jump == 1) {
+        y_ball += 0.01;
+        if(y_ball > 0.3) {
+            jump = 2;
+        }
+    }
+    
+    if(jump == 2) {
+        y_ball -= 0.01;
+        if(y_ball < 0) {
+            jump = 0;
+            y_ball = 0;
+        }
+    }
   
   glutPostRedisplay();
 
@@ -176,6 +211,10 @@ static void on_display(void){
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 
+  if(animation_ongoing == 0 && in_hole == true) {
+        game_over_hole();
+  }
+  
   glutSwapBuffers();
 }
 
@@ -203,7 +242,6 @@ static void create_sphera(void){
 
 // iscrtavanje staze
 static void create_track(void){
-
   for(i=1; i<1020; i++) {
     if(i == 1018 || i == 1019) {
       int j;
@@ -281,6 +319,7 @@ static void create_hole(void) {
 
 // isrtavanje strelica za ubrzanje
 static void up_speed(void){
+    
   int i;
   float x;
   for(i=1; i<1000; i=i+10) {
@@ -318,9 +357,11 @@ static void up_speed(void){
 
 // provera upadanja u rupu
 void check_hole(float xl,float xd,float zg,float zd){
-     if((x_1 <= (xl-0.05)) && (x_1 >= (xd+0.05)) && (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1)) {
-       y_ball-=0.1; 
-    }
+     if((x_1 <= (xl-0.05)) && (x_1 >= (xd+0.05)) && 
+         (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball == 0)) {
+       in_hole = true;
+       animation_ongoing = 0;
+     }
 }
 
 // isrtavanje desnog zida
@@ -364,3 +405,18 @@ static void left_wall(void){
     glEnd();
   }
 }
+
+void game_over_hole(void){
+
+    char ispis[20];
+    sprintf(ispis, "Game over");
+
+    glPushMatrix();
+        glColor3d(1,1,0);
+        glRasterPos3f(0.2,0,2);
+        int len = strlen(ispis);
+        for(int i =0; i<len; i++) {
+            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ispis[i]);
+        }
+    glPopMatrix();
+} 
