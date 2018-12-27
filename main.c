@@ -7,6 +7,7 @@
 
 #define TIMER_ID 0
 #define TIMER_INTERVAL 10
+
 static int animation_ongoing;
 static float rotation_speed;
 
@@ -19,6 +20,7 @@ static void on_keyboard(unsigned char key, int x, int y);
 static void on_timer_1(int value_1);
 static void create_hole(void);
 static void check_hole(float xl,float xd,float yg,float yd);
+static void check_hole2(float xl,float xd,float zd,float zg);
 static void up_speed(void);
 static void left_wall(void);
 static void rigth_wall(void);
@@ -28,12 +30,13 @@ static void finish(void);
 
 int width_window = 700;
 int height_window = 500;
-float z_1 = 0.7;
-float x_1 = 0.0;
-int niz_random[1000];
+float z_1 = 0.7; // za koliko transliram stazu
+float z_2 = 0.02; // promenljiva za ubrzanje
+float x_ball = 0.0; // x-kordinata lopte
+int niz_random[1000]; // generisanje random niza
 int i, lm = 0, rm = 0;
-float z_ball = 0.5;
-float y_ball = 0;
+float z_ball = 0.5; // z-kordinata lopte
+float y_ball = 0; // y-kordinata lopte
 bool in_hole = false;
 int jump = 0;
 float translate_x = 0.0;
@@ -112,17 +115,23 @@ if(value_1 != TIMER_ID)
 
     rotation_speed += 8;
     
-    z_1 -= 0.02;
+    z_1 -= z_2;
+    if(z_2 >= 0.02) {
+        z_2 -= 0.01;
+    }
+    else {
+        z_2 = 0.02;
+    }
     
     if(lm == 1){
       translate_x += 0.01;
-      x_1 += 0.01;
+      x_ball += 0.01;
       if(translate_x > 0.2) {
           lm = 0;
           translate_x = 0;
       }
       
-      if(x_1 > 0.8) {
+      if(x_ball > 0.8) {
 	  animation_ongoing = 0;
           sleep(3);
 	  exit(0);
@@ -131,13 +140,13 @@ if(value_1 != TIMER_ID)
     
     if(rm == 1){
       translate_x += 0.01;
-      x_1 -= 0.01;
+      x_ball -= 0.01;
       if(translate_x > 0.2) {
           rm = 0;
           translate_x = 0;
       }
       
-      if(x_1 < -0.8) {
+      if(x_ball < -0.8) {
 	  animation_ongoing = 0;
 	  sleep(3);
 	  exit(0);
@@ -170,7 +179,6 @@ if(value_1 != TIMER_ID)
 static void on_display(void){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // pomeranje kamere sa kretanjem sfere
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(0,1,-0.6,0,0,1.5,0,1,0);
@@ -208,7 +216,11 @@ static void on_display(void){
        
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  create_sphera();
+  glPushMatrix();
+    glTranslated(x_ball,y_ball,z_ball);
+    glRotatef(rotation_speed,1,0,0);
+    create_sphera();
+  glPopMatrix();
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 
@@ -225,7 +237,6 @@ static void on_reshape(int width, int height){
   width_window = width;
   height_window =  height;
 
-  // postavljanje kamere
   glViewport(0,0,width_window,height_window);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -236,8 +247,6 @@ static void on_reshape(int width, int height){
 // iscrtavanje sfere
 static void create_sphera(void){
   glPushMatrix();
-    glTranslated(x_1,y_ball,z_ball);
-    glRotatef(rotation_speed,1,0,0);
     glShadeModel(GL_FLAT);
     glutSolidSphere(0.115,15,15);
   glPopMatrix();
@@ -322,15 +331,16 @@ static void create_hole(void) {
 
 // isrtavanje strelica za ubrzanje
 static void up_speed(void){
-    
   int i;
   float x;
   for(i=1; i<1000; i=i+10) {
     if(niz_random[i] % 2 != 0){
       x = -niz_random[i] * 0.1;
+      check_hole2(x,x-0.3,i*0.2-0.2,i*0.2+0.2);
     }
     else{
       x = niz_random[i] *0.1;
+      check_hole2(x,x-0.3,i*0.2-0.2,i*0.2+0.2);
     }
     
     if(x>-0.7 && x<0.7 && (x-0.3)>-0.7 && (x-0.3)<0.7) {
@@ -360,11 +370,20 @@ static void up_speed(void){
 
 // provera upadanja u rupu
 void check_hole(float xl,float xd,float zg,float zd){
-     if((x_1 <= (xl-0.05)) && (x_1 >= (xd+0.05)) && 
+     if((x_ball <= (xl-0.05)) && (x_ball >= (xd+0.05)) && 
          (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball == 0)) {
        in_hole = true;
        animation_ongoing = 0;
      }
+}
+
+// provera za ubrzanje
+void check_hole2(float xl,float xd,float zd,float zg){
+    if((x_ball <= xl) && (x_ball >= xd) && 
+         (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball == 0)){
+        
+        z_2 = 0.2;
+    }
 }
 
 void finish(void) {
