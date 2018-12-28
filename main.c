@@ -36,7 +36,7 @@ float x_ball = 0.0; // x-kordinata lopte
 int niz_random[1000]; // generisanje random niza
 int i, lm = 0, rm = 0;
 float z_ball = 0.5; // z-kordinata lopte
-float y_ball = 0; // y-kordinata lopte
+float y_ball = 0.06; // y-kordinata lopte
 bool in_hole = false;
 int jump = 0;
 float translate_x = 0.0;
@@ -73,6 +73,8 @@ static void initialize(void){
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+  
+  glEnable(GL_DEPTH_TEST);
 }
 
 static void on_keyboard(unsigned char key, int x, int y){
@@ -163,9 +165,9 @@ if(value_1 != TIMER_ID)
     
     if(jump == 2) {
         y_ball -= 0.01;
-        if(y_ball < 0) {
+        if(y_ball < 0.06) {
             jump = 0;
-            y_ball = 0;
+            y_ball = 0.06;
         }
     }
   
@@ -205,7 +207,8 @@ static void on_display(void){
   glMaterialfv(GL_FRONT,GL_SPECULAR,specular_coeffs);
   glMaterialf(GL_FRONT,GL_SHININESS,shininess);
   
-  glPushMatrix(); 
+  glPushMatrix();
+    glDisable(GL_DEPTH_TEST);
     glTranslated(0,0,z_1);
     create_track();
     up_speed();
@@ -216,6 +219,7 @@ static void on_display(void){
        
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+  glEnable(GL_DEPTH_TEST);
   glPushMatrix();
     glTranslated(x_ball,y_ball,z_ball);
     glRotatef(rotation_speed,1,0,0);
@@ -247,7 +251,6 @@ static void on_reshape(int width, int height){
 // iscrtavanje sfere
 static void create_sphera(void){
   glPushMatrix();
-    glShadeModel(GL_FLAT);
     glutSolidSphere(0.115,15,15);
   glPopMatrix();
 }
@@ -371,7 +374,7 @@ static void up_speed(void){
 // provera upadanja u rupu
 void check_hole(float xl,float xd,float zg,float zd){
      if((x_ball <= (xl-0.05)) && (x_ball >= (xd+0.05)) && 
-         (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball == 0)) {
+         (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball <= 0.06)) {
        in_hole = true;
        animation_ongoing = 0;
      }
@@ -380,7 +383,7 @@ void check_hole(float xl,float xd,float zg,float zd){
 // provera za ubrzanje
 void check_hole2(float xl,float xd,float zd,float zg){
     if((x_ball <= xl) && (x_ball >= xd) && 
-         (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball == 0)){
+         (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball <= 0.06)){
         
         z_2 = 0.2;
     }
