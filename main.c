@@ -14,10 +14,11 @@ static float rotation_speed;
 static void initialize(void);
 static void on_display(void);
 static void on_reshape(int width, int height);
-static void create_track(void);
-static void create_sphera(void);
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_timer_1(int value_1);
+
+static void create_track(void);
+static void create_sphera(void);
 static void create_hole(void);
 static void check_hole(float xl,float xd,float yg,float yd);
 static void check_hole2(float xl,float xd,float zd,float zg);
@@ -125,31 +126,27 @@ if(value_1 != TIMER_ID)
         z_2 = 0.02;
     }
     
+    // provera da ne izadje van staze(levo) i pomeranje lopte za po 0.2
     if(lm == 1){
       translate_x += 0.01;
-      x_ball += 0.01;
-      if(translate_x > 0.2) {
-          lm = 0;
-          translate_x = 0;
-      }
-      
-      if(x_ball > 0.8) {
-          //game_over();
-	  animation_ongoing = 0;
+      if((x_ball+0.01) < (0.7-0.115)){
+            x_ball += 0.01;
+            if(translate_x > 0.2) {
+                lm = 0;
+                translate_x = 0;
+            }
       }
     }
     
+    // provera da ne izadje van staze(desno) i pomeranje lopte za po 0.2
     if(rm == 1){
       translate_x += 0.01;
-      x_ball -= 0.01;
-      if(translate_x > 0.2) {
-          rm = 0;
-          translate_x = 0;
-      }
-      
-      if(x_ball < -0.8) {
-          //game_over();
-	  animation_ongoing = 0;
+      if((x_ball-0.01) > (-0.7+0.115)){
+            x_ball -= 0.01;
+            if(translate_x > 0.2) {
+                rm = 0;
+                translate_x = 0;
+            }
       }
     }
     
