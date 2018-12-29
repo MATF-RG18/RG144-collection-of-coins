@@ -24,7 +24,7 @@ static void check_hole2(float xl,float xd,float zd,float zg);
 static void up_speed(void);
 static void left_wall(void);
 static void rigth_wall(void);
-static void game_over_hole(void);
+static void game_over(void);
 static void specialKeys(int key, int x, int y);
 static void finish(void);
 
@@ -134,9 +134,8 @@ if(value_1 != TIMER_ID)
       }
       
       if(x_ball > 0.8) {
+          //game_over();
 	  animation_ongoing = 0;
-          sleep(3);
-	  exit(0);
       }
     }
     
@@ -149,9 +148,8 @@ if(value_1 != TIMER_ID)
       }
       
       if(x_ball < -0.8) {
+          //game_over();
 	  animation_ongoing = 0;
-	  sleep(3);
-	  exit(0);
       }
     }
     
@@ -169,6 +167,16 @@ if(value_1 != TIMER_ID)
             jump = 0;
             y_ball = 0.06;
         }
+    }
+    
+    // propadanje u rupu
+    if(y_ball <= 0.05) {
+        y_ball -= 0.03;
+    }
+    
+    if(y_ball <= -1) {
+        animation_ongoing = 0;
+        in_hole = true;
     }
   
   glutPostRedisplay();
@@ -208,7 +216,6 @@ static void on_display(void){
   glMaterialf(GL_FRONT,GL_SHININESS,shininess);
   
   glPushMatrix();
-    glDisable(GL_DEPTH_TEST);
     glTranslated(0,0,z_1);
     create_track();
     up_speed();
@@ -219,7 +226,6 @@ static void on_display(void){
        
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  glEnable(GL_DEPTH_TEST);
   glPushMatrix();
     glTranslated(x_ball,y_ball,z_ball);
     glRotatef(rotation_speed,1,0,0);
@@ -229,7 +235,7 @@ static void on_display(void){
   glDisable(GL_LIGHTING);
 
   if(animation_ongoing == 0 && in_hole == true) {
-        game_over_hole();
+        game_over();
   }
   
   finish();
@@ -309,7 +315,7 @@ static void create_track(void){
 static void create_hole(void) {
   int i;
   float x;
-  for(i=0; i<1000; i=i+6) {
+  for(i=1; i<1000; i=i+6) {
     // -0.7 do 0.7 ide x a sirina rupe je 0.3
     if(niz_random[i] % 2 != 0){
       x = -niz_random[i] * 0.1;
@@ -323,10 +329,10 @@ static void create_hole(void) {
     if(x>-0.7 && x<0.7 && (x-0.3)>-0.7 && (x-0.3)<0.7) {
      glColor3d(0,0,1);
      glBegin(GL_POLYGON);
-        glVertex3f(x,0,i*0.2+0.4);
-        glVertex3f(x,0,i*0.2);
-        glVertex3f(x-0.3,0,i*0.2);
-        glVertex3f(x-0.3,0,i*0.2+0.4);
+        glVertex3f(x,0.0001,i*0.2+0.4);
+        glVertex3f(x,0.0001,i*0.2);
+        glVertex3f(x-0.3,0.0001,i*0.2);
+        glVertex3f(x-0.3,0.0001,i*0.2+0.4);
      glEnd();   
     }
   }
@@ -336,7 +342,7 @@ static void create_hole(void) {
 static void up_speed(void){
   int i;
   float x;
-  for(i=1; i<1000; i=i+10) {
+  for(i=0; i<1000; i=i+6) {
     if(niz_random[i] % 2 != 0){
       x = -niz_random[i] * 0.1;
       check_hole2(x,x-0.3,i*0.2-0.2,i*0.2+0.2);
@@ -349,23 +355,23 @@ static void up_speed(void){
     if(x>-0.7 && x<0.7 && (x-0.3)>-0.7 && (x-0.3)<0.7) {
         glColor3d(0,1,0);
         glBegin(GL_POLYGON);
-            glVertex3f(x,0,i*0.2);
-            glVertex3f(x-0.3,0,i*0.2);
-            glVertex3f((x+x-0.3)/2,0,i*0.2+0.2);
+            glVertex3f(x,0.0002,i*0.2);
+            glVertex3f(x-0.3,0.0002,i*0.2);
+            glVertex3f((x+x-0.3)/2,0.0002,i*0.2+0.2);
         glEnd();
         
         glColor3d(1,1,1);
         glBegin(GL_POLYGON);
-            glVertex3f(x,0,i*0.2-0.1);
-            glVertex3f(x-0.3,0,i*0.2-0.1);
-            glVertex3f((x+x-0.3)/2,0,i*0.2+0.2-0.1);
+            glVertex3f(x,0.0003,i*0.2-0.1);
+            glVertex3f(x-0.3,0.0003,i*0.2-0.1);
+            glVertex3f((x+x-0.3)/2,0.0003,i*0.2+0.2-0.1);
         glEnd();
         
         glColor3d(0,1,0);
         glBegin(GL_POLYGON);
-            glVertex3f(x,0,i*0.2-0.2);
-            glVertex3f(x-0.3,0,i*0.2-0.2);
-            glVertex3f((x+x-0.3)/2,0,i*0.2+0.2-0.2);
+            glVertex3f(x,0.0004,i*0.2-0.2);
+            glVertex3f(x-0.3,0.0004,i*0.2-0.2);
+            glVertex3f((x+x-0.3)/2,0.0004,i*0.2+0.2-0.2);
         glEnd();
     }
   }     
@@ -375,8 +381,9 @@ static void up_speed(void){
 void check_hole(float xl,float xd,float zg,float zd){
      if((x_ball <= (xl-0.05)) && (x_ball >= (xd+0.05)) && 
          (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball <= 0.06)) {
-       in_hole = true;
-       animation_ongoing = 0;
+         
+         y_ball -= 0.01;
+     
      }
 }
 
@@ -477,14 +484,14 @@ static void left_wall(void){
   }
 }
 
-void game_over_hole(void){
+void game_over(void){
 
     char ispis[20];
     sprintf(ispis, "Game over");
 
     glPushMatrix();
         glColor3d(1,1,0);
-        glRasterPos3f(0.2,0,2);
+        glRasterPos3f(0.2,0.1,2);
         int len = strlen(ispis);
         for(int i =0; i<len; i++) {
             glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ispis[i]);
