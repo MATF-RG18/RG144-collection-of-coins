@@ -4,9 +4,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define TIMER_ID 0
 #define TIMER_INTERVAL 10
+#define PI 3.14159265359
+#define NUMBER_OF_DOTS 100
 
 static int animation_ongoing;
 static float rotation_speed;
@@ -28,6 +31,7 @@ static void rigth_wall(void);
 static void game_over(void);
 static void specialKeys(int key, int x, int y);
 static void finish(void);
+static void create_coin(void);
 
 int width_window = 700;
 int height_window = 500;
@@ -35,6 +39,7 @@ float z_1 = 0.7; // za koliko transliram stazu
 float z_2 = 0.02; // promenljiva za ubrzanje
 float x_ball = 0.0; // x-kordinata lopte
 int niz_random[1000]; // generisanje random niza
+float niz_random_coin[25];
 int i, lm = 0, rm = 0;
 float z_ball = 0.5; // z-kordinata lopte
 float y_ball = 0.06; // y-kordinata lopte
@@ -57,6 +62,16 @@ int main(int argc, char **argv) {
   for( i=0; i<1000; i++) {
     niz_random[i] = rand() % 10;
   }
+    
+  float min_broj = -0.7 + 0.115;
+  float max_broj = 0.7 - 0.115;
+    
+  // generisem brojeve na intervalu [min_broj,max_broj]
+  for(int i = 0 ; i < 25 ; i++ ) {
+    float max2 = (max_broj - min_broj);   
+    float sl_broj = max2 * ((float)rand()/(float)RAND_MAX) + min_broj;        
+    niz_random_coin[i] = sl_broj;
+  }  
     
   initialize();
   glutDisplayFunc(on_display);
@@ -217,6 +232,7 @@ static void on_display(void){
     create_track();
     up_speed();
     create_hole();
+    create_coin();
     left_wall();
     rigth_wall();
   glPopMatrix();
@@ -372,6 +388,60 @@ static void up_speed(void){
         glEnd();
     }
   }     
+}
+
+// iscrtavanje novcica
+static void create_coin(void){
+
+   int j = 0;
+   float translate_z_coin = 0;
+   
+   for(i=0; i<100; i=i+4) {
+       
+        glPushMatrix();
+            glTranslatef(niz_random_coin[j], 0.115, translate_z_coin);
+            glRotatef(-90,1,0,0);
+            glRotatef(rotation_speed,0,0,1);
+            // donja baza valjka
+            glBegin(GL_TRIANGLE_FAN);
+            glColor3f(0,0,1);
+            glVertex2f(0,0);
+            for(int i=0; i<=NUMBER_OF_DOTS; i++) {
+                glVertex3f(cos(2*i*PI/NUMBER_OF_DOTS)*0.115,
+                            0,
+                            sin(2*i*PI/NUMBER_OF_DOTS)*0.115
+                );
+            }
+            glEnd();
+                
+            // omotac valjka
+            glColor3f(1,1,0);
+            glBegin(GL_QUAD_STRIP);
+            for(int i=0; i<= NUMBER_OF_DOTS; i++) {
+                    glVertex3f(cos(2*i*PI/NUMBER_OF_DOTS)*0.115,
+                            0,
+                            sin(2*i*PI/NUMBER_OF_DOTS)*0.115);
+                    glVertex3f(cos(2*i*PI/NUMBER_OF_DOTS)*0.115,
+                            0.06,
+                            sin(2*i*PI/NUMBER_OF_DOTS)*0.115);
+            }
+            glEnd();
+                
+            // gornja baza valjka
+            glBegin(GL_TRIANGLE_FAN);
+            glColor3f(0,0,1);
+            glVertex2f(0,0);
+            for(int i=0; i<= NUMBER_OF_DOTS; i++) {
+                    glVertex3f(cos(2*i*PI/NUMBER_OF_DOTS)*0.115,
+                            0.06,
+                            sin(2*i*PI/NUMBER_OF_DOTS)*0.115);
+            }
+            glEnd();
+        glPopMatrix();
+            
+        translate_z_coin += niz_random[i];
+        j++;
+   }
 }
 
 // provera upadanja u rupu
