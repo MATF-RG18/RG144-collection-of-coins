@@ -1,15 +1,24 @@
-PROGRAM   = ball
-CC        = gcc
-CFLAGS    = -g -Wall
-LDFLAGS   = -lGL -lGLU -lglut
+CC  	= gcc
+CCLIBS	= -lGL -lGLU -lglut
+CFLAGS	= -lm
+PROGRAM	= ball
+OBJ 	= 		 	 \
+	main.o  	 	 \
+	DrawingElements.o	 \
+	Print.o          	 \
+	CallBack.o		 \
+	
+	
+VPATH 	= src
 
-$(PROGRAM): main.o
-	$(CC) -o $(PROGRAM) main.o $(LDFLAGS)
 
-.PHONY: clean dist
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(PROGRAM): $(OBJ)
+	$(CC) -o $@ $^ $(CCLIBS) $(CFLAGS)
+
+.PHONY: clean
 
 clean:
-	-rm *.o $(PROGRAM) *core
-
-dist: clean
-	-tar -chvj -C .. -f ../$(PROGRAM).tar.bz2 $(PROGRAM)
+	rm -f *.o $(PROGRAM)
