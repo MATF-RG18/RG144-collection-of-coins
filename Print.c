@@ -66,3 +66,30 @@ void finish(void) {
         animation_ongoing = 0;
     }
 }
+
+// ispis trenutnog broja novcica
+void score(void){
+
+	char tekst1[256], *p1;
+	sprintf(tekst1, "Current score:");
+
+	char tekst2[256], *p2;
+	sprintf(tekst2, "%d", num_of_coins);
+
+	glPushMatrix();
+            glColor3f(0,1,1);
+            glRasterPos3f(0.2,0.1,0.2);
+            for(p1 = tekst1; *p1!= '\0'; p1++){
+                glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *p1);
+            }
+	glPopMatrix();
+		
+	glPushMatrix();
+            glColor3f(0,1,1);
+            glRasterPos3f(-0.1,0.1,0.2);
+            for(p2 = tekst2; *p2!= '\0'; p2++){
+                glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *p2);
+            }
+	glPopMatrix();
+	
+}

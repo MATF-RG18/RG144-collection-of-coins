@@ -25,4 +25,7 @@ void create_coin(void);
 void check_hole(float xl,float xd,float zg,float zd);
 
 // provera za ubrzanje
-void check_hole2(float xl,float xd,float zd,float zg);
+void check_speed(float xl,float xd,float zd,float zg);
+
+//provera novcica
+void check_coins(float xl,float xd,float zd,float zg);

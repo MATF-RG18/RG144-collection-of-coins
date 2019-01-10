@@ -19,3 +19,4 @@ float y_ball; // y-kordinata lopte
 bool in_hole; // promenljiva za upadanje u rupu
 int jump; // promenljiva za skok
 float translate_x; // promenljiva za transliranje lopte(levo,desno) za 0.2
+int num_of_coins; //broj pokupljenih novcica

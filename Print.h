@@ -5,3 +5,6 @@ void game_over(void);
 
 // ispis kad dodje do cilja
 void finish(void);
+
+//ispis trenutnog broja novcica
+void score(void);

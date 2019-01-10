@@ -23,7 +23,8 @@ int main(int argc, char **argv) {
   in_hole = false;
   jump = 0;
   translate_x = 0.0;
-
+  num_of_coins = 0;
+  
   glutInitWindowSize(width_window, height_window);
   glutInitWindowPosition(100, 100);
   glutCreateWindow(argv[0]);

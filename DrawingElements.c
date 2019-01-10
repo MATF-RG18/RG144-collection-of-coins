@@ -102,11 +102,11 @@ void up_speed(void){
   for(i=0; i<1000; i=i+6) {
     if(niz_random[i] % 2 != 0){
       x = -niz_random[i] * 0.1;
-      check_hole2(x,x-0.3,i*0.2-0.2,i*0.2+0.2); 
+      check_speed(x,x-0.3,i*0.2-0.2,i*0.2+0.2); 
     }
     else{
       x = niz_random[i] *0.1;
-      check_hole2(x,x-0.3,i*0.2-0.2,i*0.2+0.2);
+      check_speed(x,x-0.3,i*0.2-0.2,i*0.2+0.2);
     }
     
     if(x>-0.7 && x<0.7 && (x-0.3)>-0.7 && (x-0.3)<0.7) {
@@ -181,8 +181,10 @@ void create_coin(void){
                             sin(2*i*PI/NUMBER_OF_DOTS)*0.115);
             }
             glEnd();
-        glPopMatrix();
-            
+	glPopMatrix();  
+	
+	check_coins(niz_random_coin[j],niz_random_coin[j], translate_z_coin-0.03, translate_z_coin+0.03);
+
         translate_z_coin += niz_random[i];
         j++;
    }
@@ -242,10 +244,20 @@ void check_hole(float xl,float xd,float zg,float zd){
 }
 
 // provera za ubrzanje
-void check_hole2(float xl,float xd,float zd,float zg){
+void check_speed(float xl,float xd,float zd,float zg){
     if((x_ball <= xl) && (x_ball >= xd) && 
          (zg >= z_ball-z_1) && (zd+0.2 <= z_ball-z_1) && (y_ball < 0.116)){
         
         z_2 = 0.2;
+    }
+}
+
+// provera prolaska kroz novcic
+void check_coins(float xl,float xd,float zd,float zg){
+    if((x_ball <= (xl+0.115)) && (x_ball >= (xd-0.115)) && 
+	(zg >= z_ball-z_1) && (zd <= z_ball-z_1) && (y_ball < 0.116)) {
+    
+	 num_of_coins = num_of_coins + 1;
+      
     }
 }

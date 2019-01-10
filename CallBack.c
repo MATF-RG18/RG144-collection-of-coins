@@ -68,6 +68,7 @@ void on_display(void){
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  // postavljanje pogleda i kamere
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(0,1,-0.6,0,0,1.5,0,1,0);
@@ -119,6 +120,7 @@ void on_display(void){
   }
   
   finish();
+  score();
   
   glutSwapBuffers();
 }

@@ -1,6 +1,7 @@
 #include <GL/glut.h>
 
-// Deklaracija callback funckija
+// Deklaracija callback funkcija
+
 void initialize(void);
 
 void on_display(void);
